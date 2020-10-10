@@ -1,11 +1,19 @@
-FROM jenkins/ssh-agent
+FROM node:10-alpine as builder
 
-RUN apt-get update 
-RUN apt-get install -y git wget apt-transport-https ca-certificates curl
+# Set work directory
+WORKDIR /code
+# Copy the project
+COPY . /code/
+RUN yarn install
+RUN yarn build
 
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
 
-RUN apt-get update
-RUN apt-get install -y nodejs yarn default-jre
+# ------------------------------------------------------
+# Production Build
+# ------------------------------------------------------
+FROM nginx:1.16.0-alpine
+COPY --from=builder /code/build /usr/share/nginx/html
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx/nginx.conf /etc/nginx/conf.d
+EXPOSE 9000
+CMD ["nginx", "-g", "daemon off;"]
