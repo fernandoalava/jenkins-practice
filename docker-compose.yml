@@ -2,6 +2,6 @@ version: "3"
 
 services:
   webapp:
-    build: .
+    image: falavaz/jenkinswebapp:pipeline
     ports:
       - 9000:9000
