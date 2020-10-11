@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  webapp:
+    image: falavaz/jenkinswebapp:pipeline
+    deploy:
+      replicas: 4
+    ports:
+      - 9000:9000
