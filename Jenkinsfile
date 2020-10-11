@@ -8,12 +8,12 @@ stage('test'){
 node(){
     checkout scm
     stage('build docker image'){
-        withDockerServer([uri: '${DOCKER_HOST}']) {
+        withDockerServer([uri: 'tcp://${DOCKER_HOST}:2375']) {
             docker.build 'falavaz/jenkinswebapp:pipeline'
         }
     }
     stage('push docker image to docker hub'){
-        withDockerServer([uri: '${DOCKER_HOST}']) {
+        withDockerServer([uri: 'tcp://${DOCKER_HOST}:2375']) {
             withDockerRegistry(credentialsId: 'docker-hub') {
                 docker.image('falavaz/jenkinswebapp:pipeline').push()
             }
@@ -21,17 +21,17 @@ node(){
         }
     }
      stage('deploy the image to staging server '){
-        withDockerServer([uri: '${STAGING}']) {
+        withDockerServer([uri: 'tcp://${STAGING}:2375']) {
            sh 'docker-compose pull' 
            sh 'docker-compose -p webapp_staging up -d'
         }
         input "Application is good?"
-        withDockerServer([uri: '${STAGING}']) {
+        withDockerServer([uri: 'tcp://${STAGING}:2375']) {
            sh 'docker-compose -p webapp_staging down -v'
         }
     }
     stage('deploy in production'){
-        withDockerServer([uri: '${PRODUCTION}']) {
+        withDockerServer([uri: 'tcp://${PRODUCTION}:2375']) {
            sh 'docker stack deploy -c docker-stack.yml fernandoapp'
         }
     }
